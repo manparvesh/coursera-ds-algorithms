@@ -1,105 +1,107 @@
 #include <algorithm>
 #include <iostream>
 #include <vector>
-#include <queue>
-#if defined(__unix__) || defined(__APPLE__)
-#include <sys/resource.h>
-#endif
-using namespace std;
+#include <map>
 
-class Node;
+using namespace std;
 
 class Node {
   public:
-    int key;
-    Node *parent;
-    std::vector<Node *> children;
+    int value;
+    std::vector<int> children;
 
-    Node() {
-        this->parent = NULL;
+    Node(int value) : value(value) {}
+
+    void add_child(int child) {
+        this->children.push_back(child);
     }
 
-    void setParent(Node *theParent) {
-        parent = theParent;
-        parent->children.push_back(this);
+    int get_size() {
+        return this->children.size();
     }
 };
 
-#define debug
+class Tree {
+  private:
+    int number_of_nodes;
+    Node *root;
+    std::vector<int> parents;
+    std::map<int, Node *> nodes;
 
-int main_with_large_stack_space() {
-    std::ios_base::sync_with_stdio(0);
-    int n;
-    std::cin >> n;
-
-    vector<vector<int>> nds(n);
-    int root = -1;
-
-    for (int child_index = 0; child_index < n; child_index++) {
-        int parent_index;
-        std::cin >> parent_index;
-        if (parent_index >= 0) {
-            nds[parent_index].push_back(child_index);
-        } else {
-            root = child_index;
+    void construct_tree() {
+        for (int i = 0; i < this->number_of_nodes; i++) {
+            this->nodes[i] = new Node(i);
         }
-    }
 
-    // Replace this code with a faster implementation
-    int maxHeight = 0;
-
-    queue<int> q;
-    q.push(root);
-    q.push(-1);
-    while (q.size()) {
-        int temp_node = q.front();
-#ifdef debug
-        cout << "Front = " << temp_node << endl;
-#endif
-        q.pop();
-        if (temp_node == -1) {
-            maxHeight++;
-#ifdef debug
-            cout << "new height = " << maxHeight << endl;
-#endif
-        } else {
-            for (int w = 0; w < nds[temp_node].size(); w++) {
-                q.push(nds[temp_node][w]);
-#ifdef debug
-                cout << "Pushing " << nds[temp_node][w] << endl;
-#endif
-            }
-            if (nds[temp_node].size()) {
-                q.push(-1);
-#ifdef debug
-                cout << "Pushing " << -1 << endl;
-#endif
+        for (int i = 0; i < this->number_of_nodes; i++) {
+            int parent = this->parents[i];
+            if (parent == -1) {
+                // root node
+                this->root = this->nodes[i];
+            } else {
+                // add child
+                this->nodes[parent]->add_child(i);
             }
         }
     }
 
-    std::cout << maxHeight << std::endl;
+    int get_max_height(Node *node) {
+        if (node == NULL) return 0; // this ain't shit
+        if (node->get_size() == 0) return 1; // no children
+
+        int height = 0;
+        for (int i = 0; i < node->get_size(); i++) {
+            int height_of_this_child = this->get_max_height(this->nodes[node->children[i]]);
+            height = max(height, height_of_this_child);
+        }
+
+        return height + 1;
+    }
+
+  public:
+    // deconstructor to delete memory allocated to nodes->
+    ~Tree() {
+        for (const auto &node : this->nodes) {
+            delete node.second;
+        }
+    }
+
+    // reading the tree
+    void read() {
+        cin >> this->number_of_nodes;
+        this->parents.resize(this->number_of_nodes);
+        for (int i = 0; i < this->number_of_nodes; i++) {
+            cin >> this->parents[i];
+        }
+    }
+
+    int get_height() {
+        this->construct_tree();
+        this->get_max_height(this->root);
+    }
+
+    void print_tree() {
+        for (int i = 0; i < number_of_nodes; i++) {
+            if (nodes.find(i) != nodes.end()) {
+                cout << nodes[i]->value << ": ";
+                for (int j = 0; j < nodes[i]->get_size(); ++j) {
+                    cout << nodes[i]->children[j] << " ";
+                }
+                cout << endl;
+            }
+        }
+    }
+};
+
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    Tree *tree = new Tree();
+    tree->read();
+    // tree->print_tree();
+    cout << tree->get_height() << endl;
+
     return 0;
-}
-
-int main (int argc, char **argv) {
-#if defined(__unix__) || defined(__APPLE__)
-    // Allow larger stack space
-    const rlim_t kStackSize = 16 * 1024 * 1024;   // min stack size = 16 MB
-    struct rlimit rl;
-    int result;
-
-    result = getrlimit(RLIMIT_STACK, &rl);
-    if (result == 0) {
-        if (rl.rlim_cur < kStackSize) {
-            rl.rlim_cur = kStackSize;
-            result = setrlimit(RLIMIT_STACK, &rl);
-            if (result != 0) {
-                std::cerr << "setrlimit returned result = " << result << std::endl;
-            }
-        }
-    }
-
-#endif
-    return main_with_large_stack_space();
 }
