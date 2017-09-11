@@ -12,6 +12,22 @@ import sys
 def build_trie(patterns):
     tree = dict()
     # write your code here
+
+    tree[0] = {}
+    counter = 0
+
+    for pattern in patterns:
+    	current_node = 0
+    	for i in range(0, len(pattern)):
+    		current_symbol = pattern[i]
+    		if current_symbol in tree[current_node]:
+    			current_node = tree[current_node][current_symbol]
+    		else:
+    			counter += 1
+    			tree[current_node][current_symbol] = counter
+    			tree[counter] = {}
+    			current_node = counter
+
     return tree
 
 

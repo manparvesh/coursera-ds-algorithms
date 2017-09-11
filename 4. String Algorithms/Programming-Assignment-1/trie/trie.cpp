@@ -10,6 +10,25 @@ typedef vector<edges> trie;
 
 trie build_trie(vector<string> & patterns) {
     trie t;
+    int counter = 0;
+    edges e;
+    t.push_back(e);
+
+    for (string pattern : patterns) {
+        int current_node = 0;
+        for (int i = 0; i < pattern.length(); i++) {
+            char c = pattern[i];
+            edges edge = t[current_node];
+            if (edge.find(c) != edge.end()) {
+                current_node = edge[c];
+            } else {
+                counter++;
+                edge[c] = counter;
+                current_node = counter;
+            }
+        }
+        t.push_back(edge);
+    }
 
     return t;
 }
