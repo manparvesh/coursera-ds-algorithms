@@ -1,8 +1,5 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
-import java.util.Arrays;
+import java.util.*;
 
 public class Evacuation {
     private static FastScanner in;
@@ -16,7 +13,60 @@ public class Evacuation {
 
     private static int maxFlow(FlowGraph graph, int from, int to) {
         int flow = 0;
-        /* your code goes here */
+
+        while (true) {
+            boolean foundPath = false;
+            Queue<Integer> queue = new LinkedList<>();
+            int[] parentIDs = new int[graph.size()];
+            Arrays.fill(parentIDs, -1);
+            queue.add(0);
+
+            // BFS
+            while (!queue.isEmpty() && !foundPath) {
+                int node = queue.poll();
+                List<Integer> ids = graph.getIds(node);
+                for (int id : ids) {
+                    Edge edge = graph.getEdge(id);
+                    if (edge.flow < edge.capacity && parentIDs[edge.to] == -1) {
+                        if (edge.to == edge.from) continue;
+                        parentIDs[edge.to] = id;
+                        if (edge.to == graph.size() - 1) {
+                            foundPath = true;
+                            break;
+                        }
+                        queue.add(edge.to);
+                    }
+                }
+            }
+
+            if (!foundPath) break;
+
+            // find value of flow
+            to = graph.size() - 1;
+            int minCap = -1;
+            while (to != 0) {
+                int id = parentIDs[to];
+                Edge edge = graph.getEdge(id);
+                if (minCap == -1 || edge.capacity - edge.flow < minCap) {
+                    minCap = edge.capacity - edge.flow;
+                }
+                to = edge.from;
+            }
+            to = graph.size() - 1;
+            while (to != 0) {
+                int id = parentIDs[to];
+                Edge edge = graph.getEdge(id);
+                graph.addFlow(id, minCap);
+                to = edge.from;
+            }
+        }
+
+        // calculate the flow
+        for (int id : graph.getIds(0)) {
+            Edge edge = graph.getEdge(id);
+            flow += edge.flow;
+        }
+
         return flow;
     }
 
