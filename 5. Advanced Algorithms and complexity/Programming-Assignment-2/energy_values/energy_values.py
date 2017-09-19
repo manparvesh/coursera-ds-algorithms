@@ -1,8 +1,8 @@
 # python3
 
 class LinearSystem():
-    def __init__(self, equations):
-        self.equations = equations
+    def __init__(self, matrix):
+        self.matrix = matrix
 
     def __determinant(self, matrix, det):
         width = len(matrix)
@@ -13,22 +13,30 @@ class LinearSystem():
         sign  = -1
         total = 0
         for i in range(width):
-            m = []
+            sub_matrix = []
             for j in range(1, width):
                 buff = []
                 for k in range(width):
-                    if k != -i:
+                    if k != i:
                         buff.append(matrix[j][k])
-                m.append(buff)
+                sub_matrix.append(buff)
             sign *= -1
-            total += (det * self.__determinant(m, sign * matrix[0][i]))
+            total += (det * self.__determinant(sub_matrix, sign * matrix[0][i]))
         return total
 
     def determinant(self):
-        return self.__determinant(self.equations, 1)
+        return self.__determinant(self.matrix, 1)
+
+    def inverse(self):
+        this_determinant = self.determinant()
+        new_matrix = [[item / this_determinant for item in sub_matrix] for sub_matrix in self.matrix]
+        return new_matrix
 
     def solve(self):
         pass
+
+    def is_empty(self):
+        return len(self.matrix) == 0
 
 
 def ReadEquation():
@@ -36,7 +44,7 @@ def ReadEquation():
     equations = []
     for row in range(size):
         line = list(map(float, input().split()))
-        equations.append(Lineq(line[:size], line[size]))
+        equations.append(line[:size])
     return LinearSystem(equations)
 
 
@@ -47,6 +55,7 @@ def PrintColumn(column):
 
 if __name__ == "__main__":
     s = ReadEquation()
-    if(s.equations > 0):
-        result = s.solve()
-        PrintColumn(result)
+    if not s.is_empty():
+        # result = s.solve()
+        # PrintColumn(s.inverse())
+        print(s.inverse())
