@@ -195,11 +195,11 @@ class LinearEquationsSolver {
 
 
     /**
-      arr[]  ---> Input Array
-    data[] ---> Temporary array to store current combination
-    start & end ---> Staring and Ending indexes in arr[]
-    index  ---> Current index in data[]
-    r ---> Size of a combination to be printed
+    *  arr[]  ---> Input Array
+    * data[] ---> Temporary array to store current combination
+    * start and end ---> Staring and Ending indexes in arr[]
+    * index  ---> Current index in data[]
+    * r ---> Size of a combination to be printed
      **/
     void combinationUtil(int arr[], int n, int r, int index,
                          int data[], int i) {

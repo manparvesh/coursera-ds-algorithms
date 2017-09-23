@@ -1,61 +1,96 @@
-# python3
+#python 3
+debug = False
 
-class LinearSystem():
-    def __init__(self, matrix):
-        self.matrix = matrix
+def from_input():
+    m = int(input())
+    idx_matrix = []
+    for _ in range(m):
+        row = list(map(float, input().split()))
+        idx_matrix.append(row)
+    return idx_matrix
 
-    def __determinant(self, matrix, det):
-        width = len(matrix)
+def to_str(x):
+    return list(map(lambda a: format(a, '.6f'), x))
 
-        if width == 1:
-            return det * matrix[0][0]
+def gauss(matrix):
 
-        sign  = -1
-        total = 0
-        for i in range(width):
-            sub_matrix = []
-            for j in range(1, width):
-                buff = []
-                for k in range(width):
-                    if k != i:
-                        buff.append(matrix[j][k])
-                sub_matrix.append(buff)
-            sign *= -1
-            total += (det * self.__determinant(sub_matrix, sign * matrix[0][i]))
-        return total
+    if len(matrix) == 0:
+        return []
+    size = len(matrix[0]) - 1
+    size_rows = len(matrix)
+    used_columns = [False] * size
+    used_rows = [False] * size_rows
 
-    def determinant(self):
-        return self.__determinant(self.matrix, 1)
+    def makePivot(selectedRow, selectedColumn):
+        used_rows[selectedRow] = True
+        used_columns[selectedColumn] = True
 
-    def inverse(self):
-        this_determinant = self.determinant()
-        new_matrix = [[item / this_determinant for item in sub_matrix] for sub_matrix in self.matrix]
-        return new_matrix
+    def leftMostNonZeroInNonPivotRow():
+        if False not in used_rows:
+            return False
+        initialRow = used_rows.index(False)
+        for row in range(initialRow, size_rows):
+            for column in range(size):
+                if matrix[row][column] != 0 and column < size:
+                    used_rows[row] = True
+                    return (row, column)
+        return False
 
-    def solve(self):
-        pass
+    def swapRowToTopOfNonPivotRow(selectedRow):
+        if False not in used_rows:
+            return
+        topNonPivotRow = used_rows.index(False)
+        if topNonPivotRow < selectedRow:
+            matrix[topNonPivotRow], matrix[selectedRow] = matrix[selectedRow], matrix[topNonPivotRow]
+        selectedRow = topNonPivotRow
 
-    def is_empty(self):
-        return len(self.matrix) == 0
+    def rescaleToMakePivotOne(selectedRow, selectedColumn):
+        pivot = matrix[selectedRow][selectedColumn]
+        matrix[selectedRow] = [elem/pivot for elem in matrix[selectedRow]]
+
+    def substractToMakeOtherRowsZero(selectedRow, selectedColumn):
+        for row in range(size_rows):
+            if row != selectedRow:
+                times = matrix[row][selectedColumn]
+                matrix[row] = [i - (times * j) for i, j in zip(matrix[row], matrix[selectedRow])]
+
+    while False in used_rows and False in used_columns:
+        selectedRow, selectedColumn = leftMostNonZeroInNonPivotRow()
+        swapRowToTopOfNonPivotRow(selectedRow)
+        makePivot(selectedRow, selectedColumn)
+        rescaleToMakePivotOne(selectedRow, selectedColumn)
+        substractToMakeOtherRowsZero(selectedRow, selectedColumn)
+    res = [matrix[row][-1] for row in range(size_rows)]
+    for i in range(len(res)):
+        if res[i] == -0.0:
+            res[i] = 0.0
+    return to_str(res)
 
 
-def ReadEquation():
-    size = int(input())
-    equations = []
-    for row in range(size):
-        line = list(map(float, input().split()))
-        equations.append(line[:size])
-    return LinearSystem(equations)
+
+def test():
+    def run(data, expected, f=gauss):
+        result = f(data)
+        if result != expected:
+            raise Exception("Expected %s, Actual: %s" % (expected, result))
+    run([[1.0, 1.0, 3.0], [2.0, 3.0, 7.0]], ["2.000000", "1.000000"])
+    run([[1.0, 1.0]], ["1.000000"])
+    run([], [])
+    run([[5.0, -5.0, -1.0], [-1.0, -2.0, -1.0]], ["0.200000", "0.400000"])
+    run([[1.0, 0.0, 0.0, 0.0, 1.0], [0.0, 1.0, 0.0, 0.0, 5.0],
+        [0.0, 0.0, 1.0, 0.0, 4.0], [0.0, 0.0, 0.0, 1.0, 3.0]],
+        ["1.000000", "5.000000", "4.000000", "3.000000"])
+    run([
+        [2.0, 4.0, -2.0, 0.0, -2.0],
+        [-1.0, -2.0, 1.0, -2.0, -1.0],
+        [2.0, 2.0, 0.0, 2.0, 0.0]],
+        ["-1.000000", "1.000000", "0.000000"])
+    print("Tests passed")
 
 
-def PrintColumn(column):
-    size = len(column)
-    for row in range(size):
-        print("%.20lf" % column[row],)
-
-if __name__ == "__main__":
-    s = ReadEquation()
-    if not s.is_empty():
-        # result = s.solve()
-        # PrintColumn(s.inverse())
-        print(s.inverse())
+if __name__ == '__main__':
+    if debug:
+        test()
+    else:
+        s = gauss(from_input())
+        print(" ".join(s))
