@@ -1,5 +1,4 @@
 import java.io.*;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.StringTokenizer;
 
@@ -27,6 +26,7 @@ public class CleaningApartment {
     class ConvertHampathToSat {
         int numVertices;
         Edge[] edges;
+        int countClauses;
 
         ConvertHampathToSat(int n, int m) {
             numVertices = n;
@@ -37,14 +37,95 @@ public class CleaningApartment {
         }
 
         void printEquisatisfiableSatFormula() {
-            // This solution prints a simple satisfiable formula
-            // and passes about half of the tests.
-            // Change this function to solve the problem.
-            writer.printf("3 2\n");
-            writer.printf("1 2 0\n");
-            writer.printf("-1 -2 0\n");
-            writer.printf("1 -2 0\n");
+            StringBuilder clauses = new StringBuilder();
+
+            appearInPath(clauses);
+            allVertexInPath(clauses);
+            onlyOnceInPath(clauses);
+            onlyOneInEachPosition(clauses);
+            connectedVertex(clauses);
+            writer.printf(countClauses + " " + numVertices * numVertices + "\n");
+            writer.printf(clauses.toString());
         }
+
+        private void appearInPath(StringBuilder clauses) {
+            for (int i = 1; i < numVertices * numVertices + 1; i += numVertices) {
+                for (int j = 0; j < numVertices; j++) {
+                    clauses.append(i + j)
+                            .append(" ");
+                }
+                clauses.append("0\n");
+                countClauses++;
+            }
+        }
+
+        private void allVertexInPath(StringBuilder clauses) {
+            for (int i = 1; i < numVertices + 1; i++) {
+                for (int j = 0; j < numVertices * numVertices; j += numVertices) {
+                    clauses.append(i + j)
+                            .append(" ");
+                }
+                clauses.append("0\n");
+                countClauses++;
+            }
+        }
+
+        private void onlyOnceInPath(StringBuilder clauses) {
+            for (int i = 1; i < numVertices * numVertices + 1; i += numVertices) {
+                for (int j = 0; j < numVertices; j++) {
+                    for (int k = j + 1; k < numVertices; k++) {
+                        clauses.append(-(i + j))
+                                .append(" ")
+                                .append(-(i + k))
+                                .append(" 0\n");
+                        countClauses++;
+                    }
+                }
+
+            }
+        }
+
+        private void onlyOneInEachPosition(StringBuilder clauses) {
+            for (int i = 1; i < numVertices + 1; i++) {
+                for (int j = 0; j < numVertices * numVertices; j += numVertices) {
+                    for (int k = j + numVertices; k < numVertices * numVertices; k += numVertices) {
+                        clauses.append(-(i + j))
+                                .append(" ")
+                                .append(-(i + k))
+                                .append(" 0\n");
+                        countClauses++;
+                    }
+                }
+
+            }
+        }
+
+        private void connectedVertex(StringBuilder clauses) {
+            boolean[][] adj = new boolean[numVertices][numVertices];
+            for (Edge edge : edges) {
+                adj[edge.from - 1][edge.to - 1] = true;
+                adj[edge.to - 1][edge.from - 1] = true;
+            }
+            for (int i = 0; i < numVertices; i++) {
+                for (int j = i + 1; j < numVertices; j++) {
+                    if (!adj[i][j]) {
+                        for (int k = 0; k < numVertices - 1; k++) {
+                            clauses.append(-((i + 1) * numVertices - (numVertices - 1) + k))
+                                    .append(" ")
+                                    .append(-((j + 1) * numVertices - (numVertices - 1) + k + 1))
+                                    .append(" 0\n")
+
+                                    .append(-((j + 1) * numVertices - (numVertices - 1) + k))
+                                    .append(" ")
+                                    .append(-((i + 1) * numVertices - (numVertices - 1) + k + 1))
+                                    .append(" 0\n");
+                            countClauses += 2;
+                        }
+                    }
+                }
+            }
+        }
+
     }
 
     public void run() {

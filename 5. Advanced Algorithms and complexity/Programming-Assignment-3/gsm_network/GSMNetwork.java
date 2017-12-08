@@ -1,7 +1,5 @@
 import java.io.*;
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class GSMNetwork {
     private final InputReader reader;
@@ -28,7 +26,7 @@ public class GSMNetwork {
         int numVertices;
         Edge[] edges;
 
-        ConvertGSMNetworkProblemToSat (int n, int m) {
+        ConvertGSMNetworkProblemToSat(int n, int m) {
             numVertices = n;
             edges = new Edge[m];
             for (int i = 0; i < m; ++i) {
@@ -36,15 +34,60 @@ public class GSMNetwork {
             }
         }
 
+
         void printEquisatisfiableSatFormula() {
-            writer.printf("%d %d\n", numVertices + edges.length * 3,  numVertices * 3);
-            for (int i = 1; i <= numVertices; i++) {
-                writer.printf("%d %d %d 0\n", i, i + numVertices, i + numVertices * 2);
-            }
+            // This solution prints a simple satisfiable formula
+            // and passes about half of the tests.
+            // Change this function to solve the problem.
+            StringBuilder clauses = new StringBuilder((4 * numVertices + 3 * edges.length) + " " + 3 * numVertices + "\n");
+            hasUniqueColor(clauses);
+            differentColorForNeighbours(clauses);
+            writer.printf(clauses.toString());
+        }
+
+        private void differentColorForNeighbours(StringBuilder clauses) {
             for (Edge edge : edges) {
-                writer.printf("%d %d 0\n", -edge.from, -edge.to);
-                writer.printf("%d %d 0\n", -edge.from - numVertices, -edge.to - numVertices);
-                writer.printf("%d %d 0\n", -edge.from - numVertices * 2, -edge.to - numVertices * 2);
+                int from = edge.from;
+                int to = edge.to;
+
+                clauses.append(-(from * 3 - 2))
+                        .append(" ")
+                        .append(-(to * 3 - 2))
+                        .append(" 0\n")
+                        .append(-(from * 3 - 1))
+                        .append(" ")
+                        .append(-(to * 3 - 1))
+                        .append(" 0\n")
+                        .append(-(from * 3))
+                        .append(" ")
+                        .append(-(to * 3))
+                        .append(" 0\n");
+            }
+        }
+
+
+        private void hasUniqueColor(StringBuilder clauses) {
+            for (int i = 1; i < numVertices * 3 + 1; i += 3) {
+                clauses.append(i)
+                        .append(" ")
+                        .append(i + 1)
+                        .append(" ")
+                        .append(i + 2)
+                        .append(" 0\n")
+
+                        .append(-i)
+                        .append(" ")
+                        .append(-(i + 1))
+                        .append(" 0\n")
+                        .append(" ")
+                        .append(-i)
+                        .append(" ")
+                        .append(-(i + 2))
+                        .append(" 0\n")
+                        .append(-(i + 1))
+                        .append(" ")
+                        .append(-(i + 2))
+                        .append(" 0\n");
             }
         }
     }
@@ -53,7 +96,7 @@ public class GSMNetwork {
         int n = reader.nextInt();
         int m = reader.nextInt();
 
-        ConvertGSMNetworkProblemToSat  converter = new ConvertGSMNetworkProblemToSat (n, m);
+        ConvertGSMNetworkProblemToSat converter = new ConvertGSMNetworkProblemToSat(n, m);
         for (int i = 0; i < m; ++i) {
             converter.edges[i].from = reader.nextInt();
             converter.edges[i].to = reader.nextInt();
